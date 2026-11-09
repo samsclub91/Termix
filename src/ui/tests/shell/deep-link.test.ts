@@ -73,13 +73,24 @@ describe("parseDeepLinkConnect", () => {
     ).toBeUndefined();
     expect(parseDeepLinkConnect("?connect=web-01")?.using).toBeUndefined();
   });
+
+  it("parses a domain for RDP-style direct auth", () => {
+    expect(
+      parseDeepLinkConnect(
+        "?connect=BG-DW11SAL03&type=rdp&credential=adm&domain=WAG",
+      )?.domain,
+    ).toBe("WAG");
+    expect(
+      parseDeepLinkConnect("?connect=web-01&domain=")?.domain,
+    ).toBeUndefined();
+  });
 });
 
 describe("stripDeepLinkParams", () => {
-  it("removes connect, type, credential, port and using while keeping others", () => {
+  it("removes connect, type, credential, port, using and domain while keeping others", () => {
     expect(
       stripDeepLinkParams(
-        "?connect=10.0.0.5&type=vnc&credential=vnc&port=5900&using=adhoc&tab=x",
+        "?connect=10.0.0.5&type=vnc&credential=vnc&port=5900&using=adhoc&domain=WAG&tab=x",
       ),
     ).toBe("?tab=x");
   });

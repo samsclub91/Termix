@@ -28,6 +28,8 @@ export interface DeepLinkConnectIntent {
   port?: number;
   /** Royal-style lookup control; absent means auto (saved host, then ad-hoc). */
   using?: "adhoc" | "name";
+  /** Optional AD domain for RDP-style direct auth (ad-hoc connects). */
+  domain?: string;
 }
 
 /** Every query parameter the deep-link connector claims on a URL. */
@@ -37,6 +39,7 @@ export const DEEP_LINK_PARAMS = [
   "credential",
   "port",
   "using",
+  "domain",
 ] as const;
 
 const USING_VALUES = ["adhoc", "name"] as const;
@@ -76,6 +79,7 @@ export function parseDeepLinkConnect(
     credentialName: params.get("credential")?.trim() || undefined,
     port: port != null && !Number.isNaN(port) && port > 0 ? port : undefined,
     using,
+    domain: params.get("domain")?.trim() || undefined,
   };
 }
 

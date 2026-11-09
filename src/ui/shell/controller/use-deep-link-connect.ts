@@ -166,6 +166,7 @@ export function useDeepLinkConnect(options: {
           username: credential?.username ?? "",
           authType: credential ? "password" : "none",
           password: credential?.password ?? "",
+          domain: intent.domain,
         });
       }
 
