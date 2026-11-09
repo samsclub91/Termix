@@ -1734,5 +1734,11 @@
     },
     "reset": "Reset",
     "done": "Done"
+  },
+  "deepLink": {
+    "confirmTitle": "Open connection to {{host}}?",
+    "confirmDescription": "A link requested opening a session to {{host}}.",
+    "openAction": "Open connection",
+    "hostNotFound": "No host matched \"{{host}}\""
   }
 }

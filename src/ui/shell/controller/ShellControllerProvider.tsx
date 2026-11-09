@@ -33,6 +33,7 @@ import {
 } from "@/shell/stage/tab-stage-store";
 import { useRegions } from "./use-regions";
 import { useHostList } from "./use-hosts";
+import { useDeepLinkConnect } from "./use-deep-link-connect";
 import { useTabs } from "./use-tabs";
 import { useSplit } from "./use-split";
 import { useWorkspaceLayout } from "./use-workspace-layout";
@@ -127,6 +128,12 @@ export function ShellControllerProvider({
   });
   openSingletonRef.current = tabsState.openSingletonTab;
   const { tabs, activeTabId } = tabsState;
+  useDeepLinkConnect({
+    hostsLoaded: hosts.loaded,
+    hosts: hosts.list,
+    connectHost: tabsState.connectHost,
+    confirmRef,
+  });
 
   const palette: ShellPalette = {
     isOpen: paletteOpen,
