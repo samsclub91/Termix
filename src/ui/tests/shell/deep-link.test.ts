@@ -45,9 +45,44 @@ describe("parseDeepLinkConnect", () => {
     const intent = parseDeepLinkConnect("?connect=web-01&view=dashboard");
     expect(intent?.hostName).toBe("web-01");
   });
+
+  it("parses a valid port and ignores invalid ones", () => {
+    expect(parseDeepLinkConnect("?connect=10.0.0.5&port=5900")?.port).toBe(
+      5900,
+    );
+    expect(
+      parseDeepLinkConnect("?connect=10.0.0.5&port=0")?.port,
+    ).toBeUndefined();
+    expect(
+      parseDeepLinkConnect("?connect=10.0.0.5&port=-1")?.port,
+    ).toBeUndefined();
+    expect(
+      parseDeepLinkConnect("?connect=10.0.0.5&port=abc")?.port,
+    ).toBeUndefined();
+  });
+
+  it("parses an explicit using value and ignores unknown ones", () => {
+    expect(parseDeepLinkConnect("?connect=web-01&using=adhoc")?.using).toBe(
+      "adhoc",
+    );
+    expect(parseDeepLinkConnect("?connect=web-01&using=name")?.using).toBe(
+      "name",
+    );
+    expect(
+      parseDeepLinkConnect("?connect=web-01&using=nonsense")?.using,
+    ).toBeUndefined();
+    expect(parseDeepLinkConnect("?connect=web-01")?.using).toBeUndefined();
+  });
 });
 
 describe("stripDeepLinkParams", () => {
+  it("removes connect, type, credential, port and using while keeping others", () => {
+    expect(
+      stripDeepLinkParams(
+        "?connect=10.0.0.5&type=vnc&credential=vnc&port=5900&using=adhoc&tab=x",
+      ),
+    ).toBe("?tab=x");
+  });
   it("removes connect, type and credential while keeping others", () => {
     expect(
       stripDeepLinkParams("?connect=web-01&type=ssh&credential=k&tab=x"),
@@ -97,6 +132,12 @@ describe("findConnectableHost", () => {
     expect(findConnectableHost(hosts, { hostName: "192.168.20.2" })).toEqual(
       hosts[1],
     );
+  });
+
+  it("skips saved-host lookup entirely when using=adhoc", () => {
+    expect(
+      findConnectableHost(hosts, { hostName: "Web Server 1", using: "adhoc" }),
+    ).toBeUndefined();
   });
 
   it("returns undefined when nothing matches", () => {
