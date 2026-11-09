@@ -84,13 +84,26 @@ describe("parseDeepLinkConnect", () => {
       parseDeepLinkConnect("?connect=web-01&domain=")?.domain,
     ).toBeUndefined();
   });
+
+  it("parses viewonly=1 as an observe-only request and ignores other values", () => {
+    expect(
+      parseDeepLinkConnect("?connect=10.0.0.5&type=vnc&viewonly=1")?.viewOnly,
+    ).toBe(true);
+    expect(
+      parseDeepLinkConnect("?connect=web-01&viewonly=true")?.viewOnly,
+    ).toBeUndefined();
+    expect(
+      parseDeepLinkConnect("?connect=web-01&viewonly=0")?.viewOnly,
+    ).toBeUndefined();
+    expect(parseDeepLinkConnect("?connect=web-01")?.viewOnly).toBeUndefined();
+  });
 });
 
 describe("stripDeepLinkParams", () => {
-  it("removes connect, type, credential, port, using and domain while keeping others", () => {
+  it("removes all deep-link params including viewonly while keeping others", () => {
     expect(
       stripDeepLinkParams(
-        "?connect=10.0.0.5&type=vnc&credential=vnc&port=5900&using=adhoc&domain=WAG&tab=x",
+        "?connect=10.0.0.5&type=vnc&credential=vnc&port=5900&using=adhoc&domain=WAG&viewonly=1&tab=x",
       ),
     ).toBe("?tab=x");
   });

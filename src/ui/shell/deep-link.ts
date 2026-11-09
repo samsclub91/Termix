@@ -4,7 +4,7 @@ import type { Host } from "@/types/ui-types";
  * Deep-link connect intent parsed from URL query parameters.
  *
  * Grammar:
- *   ?connect=<name|address>&type=<ssh|rdp|vnc|...>&credential=<name>&port=<n>&using=<name|adhoc>
+ *   ?connect=<name|address>&type=<ssh|rdp|vnc|...>&credential=<name>&port=<n>&using=<name|adhoc>&viewonly=1
  *
  * `connect` is a saved host name (or IP) by default. When the value does not
  * match a saved host and a type is present — or `using=adhoc` is explicit —
@@ -30,6 +30,13 @@ export interface DeepLinkConnectIntent {
   using?: "adhoc" | "name";
   /** Optional AD domain for RDP-style direct auth (ad-hoc connects). */
   domain?: string;
+  /**
+   * Observe-only request for ad-hoc connects (viewonly=1). Restrict-only by
+   * design: a link may add input filtering, never grant interactivity.
+   * Reserved — the connect path does not apply this yet; see the upstream
+   * issue's view-only section.
+   */
+  viewOnly?: boolean;
 }
 
 /** Every query parameter the deep-link connector claims on a URL. */
@@ -40,6 +47,7 @@ export const DEEP_LINK_PARAMS = [
   "port",
   "using",
   "domain",
+  "viewonly",
 ] as const;
 
 const USING_VALUES = ["adhoc", "name"] as const;
@@ -80,6 +88,7 @@ export function parseDeepLinkConnect(
     port: port != null && !Number.isNaN(port) && port > 0 ? port : undefined,
     using,
     domain: params.get("domain")?.trim() || undefined,
+    viewOnly: params.get("viewonly")?.trim() === "1" ? true : undefined,
   };
 }
 
