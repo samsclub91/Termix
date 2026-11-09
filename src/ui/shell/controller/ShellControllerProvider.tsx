@@ -133,6 +133,7 @@ export function ShellControllerProvider({
     hosts: hosts.list,
     connectHost: tabsState.connectHost,
     confirmRef,
+    pluginsSettled,
   });
 
   const palette: ShellPalette = {

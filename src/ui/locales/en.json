@@ -1743,6 +1743,7 @@
     "adhocTitle": "Open ad-hoc connection to {{host}}?",
     "credentialNotFound": "Credential \"{{name}}\" not found",
     "credentialFetchFailed": "Could not load credentials",
-    "typeUnknown": "Unknown connection type {{type}}"
+    "typeUnknown": "Unknown connection type {{type}}",
+    "connectFailed": "Could not start the connection"
   }
 }
