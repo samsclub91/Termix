@@ -12,7 +12,7 @@ import {
   stripDeepLinkParams,
 } from "@/shell/deep-link";
 import { createQuickConnectHost } from "@/sidebar/quick-connect-host";
-import { getCredentials } from "@/api/credentials-api";
+import { getCredentialDetails, getCredentials } from "@/api/credentials-api";
 
 /**
  * Consumes a ?connect= deep link exactly once, after the shell has its host
@@ -137,6 +137,28 @@ export function useDeepLinkConnect(options: {
                   ? match.value
                   : "",
           };
+          // The credentials LIST redacts the secret (only /credentials/:id
+          // returns it); fetch the detail so the session actually gets it.
+          if (!credential.password) {
+            try {
+              const details = (await getCredentialDetails(credId)) as Record<
+                string,
+                unknown
+              >;
+              credential = {
+                ...credential,
+                password:
+                  typeof details.password === "string"
+                    ? details.password
+                    : typeof details.value === "string"
+                      ? details.value
+                      : credential.password,
+              };
+            } catch {
+              // Leave the empty password; the failed session shows the auth
+              // failure rather than swallowing the connect silently.
+            }
+          }
         } catch {
           toast.error(t("deepLink.credentialFetchFailed"));
           return;
