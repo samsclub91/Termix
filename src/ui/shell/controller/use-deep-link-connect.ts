@@ -93,7 +93,7 @@ export function useDeepLinkConnect(options: {
       try {
         let credential: Pick<
           Credential,
-          "id" | "username" | "password"
+          "id" | "username" | "password" | "authType"
         > | null = null;
         if (!savedHost && intent.credentialName) {
           const list = await getCredentials();
@@ -133,6 +133,7 @@ export function useDeepLinkConnect(options: {
           credential = {
             id: credId,
             username: typeof match.username === "string" ? match.username : "",
+            authType: match.authType === "key" ? "key" : "password",
             password:
               typeof details.password === "string"
                 ? details.password
@@ -152,11 +153,31 @@ export function useDeepLinkConnect(options: {
         if (savedHost) {
           host = savedHost;
         } else if (coreSsh) {
+          // A quick-connect host reaches the SSH terminal plugin with no
+          // host id, and that plugin resolves stored credentials only for
+          // hosts it can expand server-side (id && userId). authType
+          // "credential" without a secret therefore always fails with
+          // "The stored credential ... could not be resolved" — carry the
+          // resolved password inline, exactly what the plugin's own typed
+          // quick connect sends (and what saving a typed quick connect
+          // keeps). Key credentials cannot ride this: the private key is
+          // write-only (never returned by /credentials/:id), so they keep
+          // the credential reference and only authenticate through a saved
+          // host.
           host = createQuickConnectHost({
             ip: intent.hostName,
             port: intent.port ?? 22,
             username: credential?.username ?? "",
-            authType: credential ? "credential" : "none",
+            authType:
+              credential && credential.authType !== "key"
+                ? "password"
+                : credential
+                  ? "credential"
+                  : "none",
+            password:
+              credential && credential.authType !== "key"
+                ? credential.password
+                : undefined,
             credentialId: credential ? String(credential.id) : undefined,
           });
         } else {
