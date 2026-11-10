@@ -6,6 +6,7 @@ import type { ConfirmOptions } from "@/components/surface/surface-scope";
 import type { Credential } from "@/types";
 import type { Host, TabType } from "@/types/ui-types";
 import { listHostProtocols } from "@/sidebar/host-protocols";
+import { getDefaultConnectionTab } from "@/lib/host-connection-tabs";
 import {
   findConnectableHost,
   parseDeepLinkConnect,
@@ -201,11 +202,27 @@ export function useDeepLinkConnect(options: {
           // terminal plugin registers "terminal" — so ssh connects omit the
           // type and open the host's default connection, exactly like
           // clicking the host.
-          const sessionType =
+          const preferredType =
             intent.type && listHostProtocols().some((p) => p.id === intent.type)
               ? intent.type
               : undefined;
-          connectHost(host, sessionType);
+          let sessionType: TabType | undefined = preferredType;
+          if (!sessionType) {
+            // The default connection comes from the host-action registry,
+            // which plugin frontends fill shortly after the runtime settles.
+            // If it is still empty the deep link would silently open nothing,
+            // so poll briefly before surfacing a failure.
+            for (let attempt = 0; attempt < 20 && !sessionType; attempt++) {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+              const resolved = getDefaultConnectionTab(host);
+              if (resolved) sessionType = resolved;
+            }
+          }
+          if (sessionType) {
+            connectHost(host, sessionType);
+          } else {
+            toast.error(t("deepLink.connectFailed"));
+          }
         }
       } catch {
         // Surface a connect failure as an error state instead of vanishing.
