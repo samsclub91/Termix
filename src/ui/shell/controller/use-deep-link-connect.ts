@@ -195,7 +195,18 @@ export function useDeepLinkConnect(options: {
               destructive: false,
             })
           : true;
-        if (ok) connectHost(host, intent.type);
+        if (ok) {
+          // Pass the type through only for REGISTERED plugin protocols
+          // (rdp, vnc, ...). "ssh" has no tab type of its own — the SSH
+          // terminal plugin registers "terminal" — so ssh connects omit the
+          // type and open the host's default connection, exactly like
+          // clicking the host.
+          const sessionType =
+            intent.type && listHostProtocols().some((p) => p.id === intent.type)
+              ? intent.type
+              : undefined;
+          connectHost(host, sessionType);
+        }
       } catch {
         // Surface a connect failure as an error state instead of vanishing.
         toast.error(t("deepLink.connectFailed"));
